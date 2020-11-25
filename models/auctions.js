@@ -4,11 +4,11 @@ const Schema = mongoose.Schema;
 const auctionsSchema = new Schema({
   itemName: String,
   photoLink: String,
-  minBidAmmount: String,
-  timeLimit: Number,
+  minBidAmmount: Number,
+  timeLimitInSec: Number,
   description: String,
   startTime: {type: Date},
-  maxWaitingLimitForABid: Number,
+  maxWaitingTimeForBid: Number,
   createdAt: {type: Date, default: Date.now},
   modifiedAt: Date,
   ownerId: String,
@@ -23,5 +23,5 @@ const auctionsSchema = new Schema({
   }
 });
 
-const auctions = mongoose.model('auctions', auctionsSchema);
-module.exports = auctions;
+const Auction = mongoose.model('Auction', auctionsSchema);
+module.exports = Auction;

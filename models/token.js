@@ -4,9 +4,9 @@ const Schema = mongoose.Schema;
 const tokenSchema = new Schema({
   userId: String,
   token: String,
-  validTil: Date,
+  validTill: Date,
   type: String
 })
 
-const token = mongoose.model('token', tokenSchema);
-module.exports = token;
+const Token = mongoose.model('Token', tokenSchema);
+module.exports = Token;

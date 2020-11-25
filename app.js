@@ -3,6 +3,16 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+let mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost/Auctioneer', { useNewUrlParser: true, useUnifiedTopology: true });
+
+let db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+
+db.once('open', () => {
+  console.log('Sussessfully connected to DB');
+});
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -10,8 +20,8 @@ var usersRouter = require('./routes/users');
 var app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'jade');
 
 app.use(logger('dev'));
 app.use(express.json());

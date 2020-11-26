@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-let user = require('./users');
 
 const auctionsSchema = new Schema({
   itemName: { type: String, required: true },
@@ -13,16 +12,16 @@ const auctionsSchema = new Schema({
   maxWaitingTimeForBid: Number,
   createdAt: {type: Date, default: Date.now},
   modifiedAt: Date,
-  ownerId: {type: Schema.Types.ObjectId, ref: 'user'},
+  ownerId: {type: Schema.Types.ObjectId, ref: 'User'},
   status: { type: String, enum: ['Pending', 'Live', 'Completed'] },
   winner: String,
   winningBidAmmount: Number,
   endTime: Date,
   bidHistory: [
     {
-      participant: {type: Schema.Types.ObjectId, ref: 'user', required: true},
+      participant: {type: Schema.Types.ObjectId, ref: 'User', required: true},
       bidAmount: {type: Number, required: true},
-      timestamp: {type: Date, default: Date.now()}
+      timestamp: {type: Date, default: Date.now}
     }
   ]
 });

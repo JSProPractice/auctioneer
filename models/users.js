@@ -6,7 +6,7 @@ const userSchema = new Schema({
   email: {type: String, unique: true, required: true},
   password: {type: String, required: true},
   dob: Date,
-  createdAt: {type: Date, default: Date.now()},
+  createdAt: {type: Date, default: Date.now},
   isVerified: {type: Boolean, default: false}
 });
 

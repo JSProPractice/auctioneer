@@ -1,9 +1,17 @@
 var express = require('express');
 var router = express.Router();
+const userService = require('../../services/user');
 
 //Create user
-router.post('/',function(req, res, next){
-    res.send('User created');
+router.post('/',async function(req, res, next){
+    let name = req.body.name;
+    let email = req.body.email;
+    let password = req.body.password;
+    let dob = req.body.dob;
+
+    let response = await userService.registerUser(name, email, password, dob);
+
+    res.send(response);
 });
 
 //Read user

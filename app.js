@@ -4,10 +4,16 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
-//var usersRouter = require('./routes/users');
+//registering mongoose models
+require('./models/users');
+require('./models/auctions');
+require('./models/token');
 
+var indexRouter = require('./routes/index');
 var apiRouter = require('./routes/api');
+
+var dbService = require('./services/db');
+
 
 var app = express();
 
@@ -21,6 +27,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+dbService.connect();
 app.use('/', indexRouter);
 //app.use('/users', usersRouter);
 

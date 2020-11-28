@@ -12,4 +12,5 @@ router.use('/user',user);
 router.use('/auth',auth);
 router.use('/token',token);
 router.use('/auction',auction);
+
 module.exports = router;

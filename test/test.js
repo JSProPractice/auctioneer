@@ -1,7 +1,7 @@
 const request = require('request');
 const mongoose = require('mongoose');
 const UserModel = require('../models/users');
-const randomString = require('../utils/randomString');
+const { randomString } = require('../utils/utils');
 
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
@@ -58,31 +58,45 @@ var loginMockWrongPassword = {
 }
 
 describe("Sign Up Module", () => {
-  test("Register User - 200 Response", () => {
+  test("Register User - 200 Response", done => {
     request.post({ url: url + '/user', form: registerMock }, function (err, res, body) {
-      expect(res.statusCode).toBe(200);
-      UserModel.deleteOne({ email: registerMock.email }, function (err, data) { })
+      try {
+        expect(res.statusCode).toBe(200);
+        done();
+        UserModel.deleteOne({ email: registerMock.email }, function (err, data) { })
+      } catch (error) {
+        done(error);
+      }
     })
   });
 
-  test("Register User with invalid email- 400 Response", () => {
+  test("Register User with invalid email- 400 Response", done => {
     request.post({ url: url + '/user', form: registerMockInvalidEmail }, function (err, res, body) {
-      expect(res.statusCode).toBe(400);
-      expect(JSON.parse(res.body).error).toBe('Invalid Email');
-      UserModel.deleteOne({ email: registerMockInvalidEmail.email }, function (err, data) { })
+      try {
+        expect(res.statusCode).toBe(400);
+        expect(JSON.parse(res.body).error).toBe('Invalid Email');
+        done();
+        UserModel.deleteOne({ email: registerMockInvalidEmail.email }, function (err, data) { })
+      } catch (error) {
+        done(error);
+      }
     })
   });
 
-  test("Register User with existing email- 400 Response", () => {
+  test("Register User with existing email- 400 Response", done => {
     var user = new UserModel(registerMockDuplicate);
     user.save(function (err, data) {
-      if (err) return console.error(err);
+      request.post({ url: url + '/user', form: registerMockDuplicate }, function (err, res, body) {
+        try {
+          expect(res.statusCode).toBe(400);
+          expect(JSON.parse(res.body).error).toBe('Email already exist');
+          done();
+          UserModel.deleteOne({ email: registerMockDuplicate.email }, function (err, data) { })
+        } catch (error) {
+          done(error);
+        }
+      })
     });
-    request.post({ url: url + '/user', form: registerMockDuplicate }, function (err, res, body) {
-      expect(res.statusCode).toBe(400);
-      expect(JSON.parse(res.body).error).toBe('Email already exist');
-      UserModel.deleteOne({ email: registerMockDuplicate.email }, function (err, data) { })
-    })
   });
 });
 
@@ -91,7 +105,6 @@ describe("Log in Module", () => {
   beforeEach(() => {
     var user = new UserModel(registerMock);
     user.save(function (err, data) {
-      if (err) return console.error(err);
     });
   });
 
@@ -99,31 +112,51 @@ describe("Log in Module", () => {
     UserModel.deleteOne({ email: registerMock.email }, function (err, data) { })
   });
 
-  test("Login User - 200 response", () => {
-    request.post({ url: url + '/auth/user/login', form: loginMock }, function (error, response, body) {
-      expect(res.statusCode).toBe(200);
+  test("Login User - 200 response", done => {
+    request.post({ url: url + '/auth/login', form: loginMock }, function (error, res, body) {
+      try {
+        expect(res.statusCode).toBe(200);
+        done();
+      } catch (error) {
+        done(error);
+      }
     });
   })
 
-  test("Login User with incorrect email - 400 response", () => {
-    request.post({ url: url + '/auth/user/login', form: loginMockWrongEmail }, function (error, response, body) {
-      expect(res.statusCode).toBe(400);
-      expect(JSON.parse(res.body).error.toBe('email or password incorrect'));
+  test("Login User with incorrect email - 400 response", done => {
+    request.post({ url: url + '/auth/login', form: loginMockWrongEmail }, function (error, res, body) {
+      try {
+        expect(res.statusCode).toBe(400);
+        expect(JSON.parse(res.body).error.toBe('email or password incorrect'));
+        done();
+      } catch (error) {
+        done(error)
+      }
     });
   })
 
-  test("Login User with incorrect password - 400 response", () => {
-    request.post({ url: url + '/auth/user/login', form: loginMockWrongPassword }, function (error, response, body) {
-      expect(res.statusCode).toBe(400);
-      expect(JSON.parse(res.body).error.toBe('email or password incorrect'));
+  test("Login User with incorrect password - 400 response", done => {
+    request.post({ url: url + '/auth/login', form: loginMockWrongPassword }, function (error, res, body) {
+      try {
+        expect(res.statusCode).toBe(400);
+        expect(JSON.parse(res.body).error.toBe('email or password incorrect'));
+        done();
+      } catch (error) {
+        done(error);
+      }
     });
   })
 
-  test("Login User(email not verified) - 400 response", () => {
-    UserModel.update({email: loginMock.email}, {$set: {isVerified: false}}, function(err, data) { });
-    request.post({ url: url + '/auth/user/login', form: loginMock }, function (error, response, body) {
-      expect(res.statusCode).toBe(400);
-      expect(JSON.parse(res.body).error.toBe('email not verified'));
+  test("Login User(email not verified) - 400 response", done => {
+    UserModel.updateOne({email: loginMock.email}, {$set: {isVerified: false}}, function(err, data) { });
+    request.post({ url: url + '/auth/login', form: loginMock }, function (error, res, body) {
+      try {
+        expect(res.statusCode).toBe(400);
+        expect(JSON.parse(res.body).error.toBe('email not verified'));
+        done();
+      } catch (error) {
+        done(error);
+      }
     });
   })
 });

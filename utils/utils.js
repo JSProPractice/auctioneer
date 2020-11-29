@@ -8,4 +8,4 @@ function randomString(length) {
   return result;
 }
 
-module.exports = randomString;
+module.exports = { randomString };

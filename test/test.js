@@ -102,14 +102,13 @@ describe("Sign Up Module", () => {
 
 describe("Log in Module", () => {
 
-  beforeEach(() => {
+  beforeEach( async () => {
     var user = new UserModel(registerMock);
-    user.save(function (err, data) {
-    });
+    await user.save(function (err, data) { });
   });
 
-  afterEach(() => {
-    UserModel.deleteOne({ email: registerMock.email }, function (err, data) { })
+  afterEach( async () => {
+    await UserModel.deleteOne({ email: registerMock.email }, function (err, data) { })
   });
 
   test("Login User - 200 response", done => {

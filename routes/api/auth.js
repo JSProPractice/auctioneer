@@ -1,13 +1,10 @@
 var express = require('express');
-var passport = require('passport')
-var LocalStrategy = require('passport-local').Strategy;
 var router = express.Router();
-const mangoose = require('mongoose');
-const User = mangoose.model('User');
+const bcrypt = require('bcrypt');
 const { login, logout, isLoggedIn } = require('../../services/auth');
 
 const userService = require('../../services/user');
-
+const saltRounds = 10;
 
 router.post('/login', function(req, res, next){
     login(req, res, next);
@@ -27,7 +24,8 @@ router.post('/signup', async function (req, res, next) {
     let password = req.body.password;
     let dob = req.body.dob;
 
-    let response = await userService.registerUser(name, email, password, dob);
+    let hash = await bcrypt.hash(password, saltRounds);
+    let response = await userService.registerUser(name, email, hash, dob);
 
     res.send(response);
 });

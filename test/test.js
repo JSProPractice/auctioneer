@@ -159,3 +159,59 @@ describe("Log in Module", () => {
     });
   })
 });
+
+describe("Session with restricted route", () => {
+
+  beforeEach(async () => {
+    var user = new UserModel(registerMock);
+    await user.save();
+  });
+
+  afterEach(async () => {
+    await UserModel.deleteOne({ email: registerMock.email })
+  });
+
+  test("Assessing logged in router without login", done => {
+    request.post({ url: url + '/auth/restricted', form: loginMock }, function (error, res, body) {
+      try {
+        expect(res.statusCode).toBe(400);
+        expect(JSON.parse(res.body).message).toBe('User not logged in');
+        done();
+      } catch (error) {
+        done(error);
+      }
+    });
+  });
+
+  test("Assessing logged in router after login", done => {
+    let cookie = request.jar()
+    request.post({ url: url + '/auth/login', jar: cookie, headers: { "Accept": "application/json" }, form: registerMock }, function (err, res, body) {
+      request.post({ url: url + '/auth/restricted', jar: cookie }, function (error, res, body) {
+        try {
+          expect(res.statusCode).toBe(200);
+          expect(JSON.parse(res.body).message).toBe('This is logged in view');
+          done();
+        } catch (error) {
+          done(error);
+        }
+      });
+    })
+  });
+
+  test("Logout test ssessing logged in router after login and then logout", done => {
+    let cookie = request.jar()
+    request.post({ url: url + '/auth/login', jar: cookie, headers: { "Accept": "application/json" }, form: registerMock }, function (err, res, body) {
+      request.get({ url: url + '/auth/logout', jar: cookie, headers: { "Accept": "application/json" }}, function(err, res, body) {
+        request.post({ url: url + '/auth/restricted', jar: cookie, }, function (error, res, body) {
+          try {
+            expect(res.statusCode).toBe(400);
+            expect(JSON.parse(res.body).message).toBe('User not logged in');
+            done();
+          } catch (error) {
+            done(error);
+          }
+        });
+      })
+    })
+  });
+});

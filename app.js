@@ -3,6 +3,23 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var session = require('express-session');
+let randomString = require('./utils/utils');
+let { v4: uuidv4 } = require('uuid');
+var MongoDBStore = require('connect-mongodb-session')(session);
+
+const passport = require('passport');
+
+var store = new MongoDBStore({
+  uri: 'mongodb://localhost:27017/connect_mongodb_session_test',
+  collection: 'mySessions'
+}, function (error) {
+  console.log('err', error);
+});
+
+store.on('error', function (error) {
+  console.log(error);
+});
 
 //registering mongoose models
 require('./models/users');
@@ -11,21 +28,26 @@ require('./models/token');
 
 var indexRouter = require('./routes/index');
 var apiRouter = require('./routes/api');
-
 var dbService = require('./services/db');
 
 
 var app = express();
 
-// view engine setup
-//app.set('views', path.join(__dirname, 'views'));
-//app.set('view engine', 'jade');
+app.use(session({
+  // cookie: { secure: true, maxAge: 6000 },
+  secret: 'Its Secret',
+  store: store,
+  resave: false,
+  saveUninitialized: true
+}));
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(passport.initialize());
+app.use(passport.session());
 
 dbService.connect();
 app.use('/', indexRouter);

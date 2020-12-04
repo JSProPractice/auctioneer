@@ -4,14 +4,12 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
-let randomString = require('./utils/utils');
-let { v4: uuidv4 } = require('uuid');
 var MongoDBStore = require('connect-mongodb-session')(session);
 
 const passport = require('passport');
 
 var store = new MongoDBStore({
-  uri: 'mongodb://localhost:27017/connect_mongodb_session_test',
+  uri: 'mongodb://localhost:27017/test_auctioneer',
   collection: 'mySessions'
 }, function (error) {
   console.log('err', error);
@@ -48,6 +46,9 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
 app.use(passport.session());
+
+//registering passport
+require('./services/passport');
 
 dbService.connect();
 app.use('/', indexRouter);

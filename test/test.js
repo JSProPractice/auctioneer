@@ -175,7 +175,7 @@ describe("Session with restricted route", () => {
     request.post({ url: url + '/auth/restricted', form: loginMock }, function (error, res, body) {
       try {
         expect(res.statusCode).toBe(400);
-        expect(JSON.parse(res.body).message).toBe('please login first');
+        expect(JSON.parse(res.body).message).toBe('User not logged in');
         done();
       } catch (error) {
         done(error);
@@ -205,7 +205,7 @@ describe("Session with restricted route", () => {
         request.post({ url: url + '/auth/restricted', jar: cookie, }, function (error, res, body) {
           try {
             expect(res.statusCode).toBe(400);
-            expect(JSON.parse(res.body).message).toBe('please login first');
+            expect(JSON.parse(res.body).message).toBe('User not logged in');
             done();
           } catch (error) {
             done(error);

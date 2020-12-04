@@ -35,7 +35,7 @@ module.exports = {
     if (req.isAuthenticated()) {
       return next();
     } else {
-      return res.status(400).send({ status: 'success', message: 'please login first' });
+      return res.status(400).send({ status: 'success', message: 'User not logged in' });
     } 
   },
 

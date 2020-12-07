@@ -2,6 +2,7 @@ var passport = require('passport')
 var LocalStrategy = require('passport-local').Strategy;
 const mangoose = require('mongoose');
 const User = mangoose.model('User');
+let bcrypt = require('bcrypt');
 
 var passport = require('passport'),
     LocalStrategy = require('passport-local').Strategy;
@@ -16,11 +17,14 @@ passport.use(new LocalStrategy({
       if (!user) {
         return done(null, false, { message: 'Incorrect username.' });
       }
-      if (user.password !== password) {
-        return done(null, false, { message: 'Incorrect password.' });
-      }
-      console.log('Local strategy returned true')
-      return done(null, user);
+      bcrypt.compare(password, user.password, function(err, result){
+        if(!result) {
+          return done(null, false, { message: 'Incorrect password.' });
+        } else {
+          console.log('Local strategy returned true')
+          return done(null, user);
+        }
+      })
     });
   }
 ));

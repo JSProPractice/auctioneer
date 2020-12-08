@@ -1,7 +1,11 @@
-const request = require('request');
+// const request = require('request');
+const request = require('supertest');
 const mongoose = require('mongoose');
 const UserModel = require('../models/users');
 const { randomString } = require('../utils/utils');
+
+var session = require('supertest-session');
+const app = require('../app');
 
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
@@ -12,14 +16,14 @@ let url = 'http://localhost:3000/api';
 
 
 beforeAll(() => {
-  mongoose.connect('mongodb://localhost/auctioneer').then(() => {
+  mongoose.connect('mongodb://localhost/test_auctioneer').then(() => {
   }).catch(err => {
     console.log('Error', err);
   })
 });
 
 afterAll(async () => {
-  await mongoose.connection.close()
+  await mongoose.connection.close();
 });
 
 var registerMock = {
@@ -160,58 +164,112 @@ describe("Log in Module", () => {
   })
 });
 
-describe("Session with restricted route", () => {
+describe.only("Session with restricted route", () => {
 
   beforeEach(async () => {
     var user = new UserModel(registerMock);
     await user.save();
+    testSession = session(app);
   });
 
   afterEach(async () => {
-    await UserModel.deleteOne({ email: registerMock.email })
+    await UserModel.deleteOne({ email: registerMock.email });
   });
+
+  
 
   test("Assessing logged in router without login", done => {
-    request.post({ url: url + '/auth/restricted', form: loginMock }, function (error, res, body) {
-      try {
-        expect(res.statusCode).toBe(400);
-        expect(JSON.parse(res.body).message).toBe('User not logged in');
-        done();
-      } catch (error) {
-        done(error);
-      }
-    });
-  });
-
-  test("Assessing logged in router after login", done => {
-    let cookie = request.jar()
-    request.post({ url: url + '/auth/login', jar: cookie, headers: { "Accept": "application/json" }, form: registerMock }, function (err, res, body) {
-      request.post({ url: url + '/auth/restricted', jar: cookie }, function (error, res, body) {
+    request(app)
+      .post('/api/auth/restricted')
+      .expect(400)
+      .end(function (err, res) {
+        if (err) done(err);
         try {
-          expect(res.statusCode).toBe(200);
-          expect(JSON.parse(res.body).message).toBe('This is logged in view');
+          expect(res.body.message).toBe('User not logged in');
           done();
         } catch (error) {
           done(error);
         }
       });
-    })
-  });
+  })
+
+  test.only("Assessing logged in router after login", done => {
+    testSession.post('/api/auth/login')
+      .send(loginMock)
+      .expect(200)
+      .end(function (err, res) {
+        if (err) done(err);
+        testSession.post('/api/auth/restricted')
+          .expect(200)
+          .end(function (err, res) {
+            if (err) done(err);
+            try {
+              expect(res.body.message).toBe('This is logged in view');
+              done();
+            } catch (error) {
+              done(error);
+            }
+          });
+      });
+  })
 
   test("Logout test ssessing logged in router after login and then logout", done => {
-    let cookie = request.jar()
-    request.post({ url: url + '/auth/login', jar: cookie, headers: { "Accept": "application/json" }, form: registerMock }, function (err, res, body) {
-      request.get({ url: url + '/auth/logout', jar: cookie, headers: { "Accept": "application/json" }}, function(err, res, body) {
-        request.post({ url: url + '/auth/restricted', jar: cookie, }, function (error, res, body) {
-          try {
-            expect(res.statusCode).toBe(400);
-            expect(JSON.parse(res.body).message).toBe('User not logged in');
-            done();
-          } catch (error) {
-            done(error);
-          }
-        });
-      })
-    })
-  });
+    request(app)
+      .post('/api/auth/login')
+      .send(loginMock)
+      .expect(200)
+      .end(function (err, res) {
+        if (err) done(err);
+        request(app)
+          .get('/api/auth/logout')
+          .expect(200)
+          .end(function (err, res) {
+            if (err) done(err);
+            request(app)
+              .post('/api/auth/restricted')
+              .expect(400)
+              .end(function (err, res) {
+                if (err) done(err);
+                try {
+                  expect(res.body.message).toBe('User not logged in');
+                  done();
+                } catch (error) {
+                  done(error);
+                }
+              });
+          });
+      });
+  })
+
+  // test("Assessing logged in router after login", done => {
+  //   let cookie = request.jar()
+  //   request.post({ url: url + '/auth/login', jar: cookie, headers: { "Accept": "application/json" }, form: registerMock }, function (err, res, body) {
+  //     request.post({ url: url + '/auth/restricted', jar: cookie }, function (error, res, body) {
+  //       try {
+  //         expect(res.statusCode).toBe(200);
+  //         expect(JSON.parse(res.body).message).toBe('This is logged in view');
+  //         done();
+  //       } catch (error) {
+  //         done(error);
+  //       }
+  //     });
+  //   })
+  // });
+
+  // test("Logout test ssessing logged in router after login and then logout", done => {
+  //   let cookie = request.jar()
+  //   request.post({ url: url + '/auth/login', jar: cookie, headers: { "Accept": "application/json" }, form: registerMock }, function (err, res, body) {
+  //     request.get({ url: url + '/auth/logout', jar: cookie, headers: { "Accept": "application/json" }}, function(err, res, body) {
+  //       request.post({ url: url + '/auth/restricted', jar: cookie, }, function (error, res, body) {
+  //         try {
+  //           expect(res.statusCode).toBe(400);
+  //           expect(JSON.parse(res.body).message).toBe('User not logged in');
+  //           done();
+  //         } catch (error) {
+  //           done(error);
+  //         }
+  //       });
+  //     })
+  //   })
+  // });
 });

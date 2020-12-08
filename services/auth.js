@@ -31,7 +31,6 @@ module.exports = {
   },
 
   isLoggedIn : function (req, res, next) {
-    console.log('req usr', req.user)
     if (req.isAuthenticated()) {
       return next();
     } else {
